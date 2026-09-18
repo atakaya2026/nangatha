@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Nangkatha Mobile Demo</title>
+<title>Nangathakey Mobile Demo</title>
 <style>
   html, body {
     height: 100%; margin: 0; padding: 0; overflow: hidden;
@@ -86,7 +86,7 @@
 
 <script>
 /* ────────────────────────────────────────────────────────────
-   닌카티(Nangkatha) 모바일 데모
+   낭아타키(Nangathakey) 모바일 데모
    · 자음: 그룹키 + 변환키(▶) 순환   (배경: images/mobile.png)
    · 플러스: 자음쌓기 / 독립모음 / 특수문자  (배경: images/how2plus.png)
    라벨은 배경 이미지에 구워져 있고, 여기서는 투명 히트영역만 얹는다.
@@ -124,7 +124,7 @@ const N_ROWH = 21.4;
 
 const N_LAYOUT = [
   ["g_nnya", "g_ca",  "g_ta",  "g_pa",  "i",    "k",    "PLUS", "g_tta"],
-  ["g_na",   "g_nga", "g_ka",  "g_tha", "j",    "STEP", "l",    ";"    ],
+  ["g_na",   "g_nga", "g_tha", "g_ka",  "j",    "STEP", "l",    ";"    ],
   ["g_nna",  "g_a",   "g_ma",  "g_ya",  "m",    ",",    ".",    "BS"   ]
 ];
 const N_BOTTOM = [
@@ -145,7 +145,7 @@ const P_ROWH = 21.5;
 // 자음 배열·▶ 위치 모두 일반 모드와 동일한 닌카티 그룹. 4행 특수문자는 우측으로 한 칸 이동(엄지 편의).
 const P_LAYOUT = [
   [ {stack:"g_nnya"}, {stack:"g_ca"},  {stack:"g_ta"},  {stack:"g_pa"},  {lit:"ဣ"}, {lit:"ဤ"}, "PLUS",     {stack:"g_tta"} ],
-  [ {stack:"g_na"},   {stack:"g_nga"}, {stack:"g_ka"},  {stack:"g_tha"}, {lit:"ဧ"}, "STEP",    {lit:"ဩ"}, {lit:"ဪ"}       ],
+  [ {stack:"g_na"},   {stack:"g_nga"}, {stack:"g_tha"}, {stack:"g_ka"},  {lit:"ဧ"}, "STEP",    {lit:"ဩ"}, {lit:"ဪ"}       ],
   [ {stack:"g_nna"},  {stack:"g_a"},   {stack:"g_ma"},  {stack:"g_ya"},  {lit:"ဦ"}, {lit:"ဥ"}, null,       null            ],
   [ null,             {lit:"ဉ"},       {lit:"၍"},       {lit:"ဿ"},       {lit:"၌"}, {lit:"၎"}, {lit:"၏"}, null            ]
 ];
