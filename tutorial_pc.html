@@ -283,7 +283,7 @@ function handleInput(rawKey) {
 
   if (K_MULTI[k]) {
     const mk = K_MULTI[k];
-    const beforeE_keys = [".", "m", "k"];
+    const beforeE_keys = [".", "m"];
     if (state.lastTapKey === mk && state.tapIndex < multiTapMap[mk].length - 1) {
       state.tapIndex++;
       const val = multiTapMap[mk][state.tapIndex];
@@ -310,8 +310,12 @@ function handleInput(rawKey) {
         resetStep();
       } else if (state.pendingE) {
         const cur = getText();
-        const base = cur.endsWith(ZWNJ + "ေ") ? cur.slice(0, -2) : cur.slice(0, -1);
-        setText(base + val + "ေ");
+        if (beforeE_keys.includes(mk)) {
+          const base = cur.endsWith(ZWNJ + "ေ") ? cur.slice(0, -2) : cur.slice(0, -1);
+          setText(base + val + "ေ");
+        } else {
+          setText(cur + val);
+        }
         state.pendingE = false; state.pendingStep = true;
       } else {
         setText(getText() + val); resetStep(); state.pendingStep = false;
@@ -387,7 +391,7 @@ const VOWEL_KEYS = ["u","i","j","l",";","m",",","."];
 const SCENES = [
   { type:"explain", diagram:true, rings:[{key:"w",cls:""}],
     coach:'ဗျည်းဇယားရဲ့ တစ်တန်းစီက စာလုံး ၅ လုံးကို <b>ရှေ့ ၂ လုံး (၁·၂)</b> နဲ့ <b>နောက် ၃ လုံး (၅·၃·၄)</b> — အုပ်စု ၂ ခုခွဲ၍ စီစဉ်ထားပါတယ်။<br>' +
-          '<b style="color:#1aa3e8">အပြာရောင်စာလုံး</b>က ညာဘက်က <b>▶</b> ကို ထပ်နှိပ်ပြီး ရိုက်ပါ။' },
+          '<b style="color:#1aa3e8">အပြာရောင်စာလုံး</b>က ညာဘက်က <b>➤</b> ကို ထပ်နှိပ်ပြီး ရိုက်ပါ။' },
 
   { type:"explain", rings: VOWEL_KEYS.map(k => ({ key:k, cls:"" })),
     coach:'သရသံနဲ့ အသံသင်္ကေတတွေက ဗျည်းနဲ့ <b>တွဲတဲ့ ဘက်</b>အလိုက် ခလုတ်တွေမှာ စီထားပါတယ်။<br>အပေါ်တွဲတာ <b>အပေါ်</b>မှာ၊ အောက်တွဲတာ <b>အောက်</b>မှာ။' },
@@ -398,7 +402,7 @@ const SCENES = [
   { type:"practice", word:"ဆီ", win:"ရပြီ! ✓&nbsp; ဆီ",
     steps:[
       { kid:"g_ca", expect:"စ",  coach:'<b>ဆ</b> ပါတဲ့ ကီးကို နှိပ်ပါ။' },
-      { kid:"STEP", expect:"ဆ",  coach:'ဘေးစာလုံးကို <b>▶</b> နဲ့။&nbsp; စ → ဆ' },
+      { kid:"STEP", expect:"ဆ",  coach:'ဘေးစာလုံးကို <b>➤</b> နဲ့။&nbsp; စ → ဆ' },
       { kid:"i",    expect:"ဆိ", coach:'အပေါ်တွဲတဲ့ သင်္ကေတက <b>အပေါ်</b>။' },
       { kid:"i",    expect:"ဆီ", coach:'နောက်တစ်ကြိမ် နှိပ်ပါ။&nbsp; ိ → ီ' }
     ] },
@@ -406,12 +410,12 @@ const SCENES = [
   { type:"practice", word:"ဒုက္ခ", win:"ရပြီ! ✓&nbsp; ဒုက္ခ", last:true,
     steps:[
       { kid:"g_na",       expect:"န",     coach:'<b>ဒ</b> ပါတဲ့ ကီးကို နှိပ်ပါ။' },
-      { kid:"STEP",       expect:"ဒ",     coach:'ဘေးစာလုံးကို <b>▶</b> နဲ့။&nbsp; န → ဒ' },
+      { kid:"STEP",       expect:"ဒ",     coach:'ဘေးစာလုံးကို <b>➤</b> နဲ့။&nbsp; န → ဒ' },
       { kid:",",          expect:"ဒု",    coach:'အောက်တွဲတဲ့ သင်္ကေတက <b>အောက်</b>။' },
       { kid:"g_ka",       expect:"ဒုက",   coach:'<b>က</b> ကို နှိပ်ပါ။' },
       { kid:"PLUS",       checkPlus:true, coach:'ဗျည်းဆင့်ဖို့ <b style="color:#0a7d31">အစိမ်းရောင် ＋</b> ကီး။' },
       { kid:"stack:g_ka", expect:"ဒုက္က", coach:'<b>ခ</b> ပါတဲ့ <b>က</b> ကီးကို နှိပ်ပါ။' },
-      { kid:"STEP",       expect:"ဒုက္ခ", coach:'<b>▶</b> နှိပ်ပြီး ခ သို့ ပြောင်းပါ။' }
+      { kid:"STEP",       expect:"ဒုက္ခ", coach:'<b>➤</b> နှိပ်ပြီး ခ သို့ ပြောင်းပါ။' }
     ] }
 ];
 

@@ -338,7 +338,7 @@ function handleInput(key) {
 
   // 모음·성조 멀티탭 (기존 로직 그대로)
   if (multiTapMap[key]) {
-    const beforeE_keys = [".", "m", "k"];
+    const beforeE_keys = [".", "m"];
 
     if (state.lastTapKey === key && state.tapIndex < multiTapMap[key].length - 1) {
       state.tapIndex++;
@@ -377,8 +377,12 @@ function handleInput(key) {
         resetStep();
       } else if (state.pendingE) {
         let cur = getText();
-        let base = cur.endsWith(ZWNJ + "ေ") ? cur.slice(0, -2) : cur.slice(0, -1);
-        setText(base + val + "ေ");
+        if (beforeE_keys.includes(key)) {
+          let base = cur.endsWith(ZWNJ + "ေ") ? cur.slice(0, -2) : cur.slice(0, -1);
+          setText(base + val + "ေ");
+        } else {
+          setText(cur + val);
+        }
         state.pendingE = false; state.pendingStep = true;
       } else {
         setText(getText() + val);

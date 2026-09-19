@@ -228,7 +228,7 @@ function handleInput(rawKey) {
 
   if (K_MULTI[k]) {
     const mk = K_MULTI[k];
-    const beforeE_keys = [".", "m", "k"];
+    const beforeE_keys = [".", "m"];
     if (state.lastTapKey === mk && state.tapIndex < multiTapMap[mk].length - 1) {
       state.tapIndex++;
       const val = multiTapMap[mk][state.tapIndex];
@@ -255,8 +255,12 @@ function handleInput(rawKey) {
         resetStep();
       } else if (state.pendingE) {
         const cur = getText();
-        const base = cur.endsWith(ZWNJ + "ေ") ? cur.slice(0, -2) : cur.slice(0, -1);
-        setText(base + val + "ေ");
+        if (beforeE_keys.includes(mk)) {
+          const base = cur.endsWith(ZWNJ + "ေ") ? cur.slice(0, -2) : cur.slice(0, -1);
+          setText(base + val + "ေ");
+        } else {
+          setText(cur + val);
+        }
         state.pendingE = false; state.pendingStep = true;
       } else {
         setText(getText() + val); resetStep(); state.pendingStep = false;
