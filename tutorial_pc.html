@@ -327,16 +327,22 @@ function handleInput(rawKey) {
   if (K_DIRECT[k]) { setText(getText() + K_DIRECT[k]); resetState(); return; }
 }
 
-/* ══════════════ 키맵 이미지 좌표 (pc_map/pc_plus 1225×356 공통) ══════════════ */
-const KIMG_W = 1225, KIMG_H = 356;
-const KB = (x0,y0,x1,y1) => ({ l:x0/KIMG_W*100, t:y0/KIMG_H*100, w:(x1-x0)/KIMG_W*100, h:(y1-y0)/KIMG_H*100 });
+/* ══════════════ 키맵 이미지 좌표 ══════════════
+   2026-09-23: 슬래시 키를 pc_map.png 3행 끝에 추가하면서 그 이미지 폭이 1225→1282로 늘었다
+   (pc_plus.png는 이 기능과 무관해 1225 그대로). 링 위치는 원본 픽셀 좌표를 그대로 저장해두고,
+   실제로 그릴 때(paintRings) 지금 어느 이미지가 떠 있는지에 맞는 폭으로 나눠 %를 계산한다 —
+   그냥 KIMG_W 하나만 늘렸더니 두 이미지 폭이 서로 달라서 플러스 모드일 때 전부 어긋났었다. */
+const KIMG_H = 356;
+const NORMAL_KIMG_W = 1282, PLUS_KIMG_W = 1225;
+const KB = (x0,y0,x1,y1) => ({ x0, y0, x1, y1 });
 const KEY_BOXES = {
   q:KB(4,3,105,107),   w:KB(118,3,218,107),  e:KB(231,3,332,107),  r:KB(344,3,445,107),  t:KB(457,3,558,107),
   y:KB(632,3,733,107),  u:KB(745,3,846,107),  i:KB(859,3,960,107),  o:KB(973,3,1074,107), p:KB(1087,3,1188,107),
   a:KB(37,126,137,231), s:KB(151,126,251,231), d:KB(264,126,364,231), f:KB(377,126,478,231), g:KB(490,126,591,231),
   h:KB(665,126,766,231), j:KB(778,126,879,231), k:KB(892,126,993,231), l:KB(1006,126,1107,231), ";":KB(1120,126,1221,231),
   z:KB(95,248,196,353), x:KB(209,248,310,353), c:KB(322,248,423,353), v:KB(435,248,536,353), b:KB(549,248,649,353),
-  n:KB(723,248,824,353), m:KB(837,248,937,353), ",":KB(951,248,1051,353), ".":KB(1064,248,1164,353)
+  n:KB(723,248,824,353), m:KB(837,248,937,353), ",":KB(951,248,1051,353), ".":KB(1064,248,1164,353),
+  "/":KB(1174,248,1280,353) // pc_map(일반 모드)에만 있는 키 - paintRings에서 플러스 모드면 건너뜀
 };
 
 // 튜토리얼 스텝의 kid → 물리 키
@@ -364,13 +370,17 @@ function syncKbdImage() {
 }
 function paintRings(specs) {
   kbdWrap.querySelectorAll('.ring').forEach(n => n.remove());
+  const imgW = state.isPlusMode ? PLUS_KIMG_W : NORMAL_KIMG_W;
   (specs || []).forEach(({ key, cls }) => {
+    if (state.isPlusMode && key === "/") return; // pc_plus.png엔 이 키가 없다
     const box = KEY_BOXES[key];
     if (!box) return;
     const d = document.createElement('div');
     d.className = 'ring ' + (cls || '');
-    d.style.left = box.l + '%'; d.style.top = box.t + '%';
-    d.style.width = box.w + '%'; d.style.height = box.h + '%';
+    d.style.left = (box.x0 / imgW * 100) + '%';
+    d.style.top = (box.y0 / KIMG_H * 100) + '%';
+    d.style.width = ((box.x1 - box.x0) / imgW * 100) + '%';
+    d.style.height = ((box.y1 - box.y0) / KIMG_H * 100) + '%';
     kbdWrap.appendChild(d);
   });
 }
