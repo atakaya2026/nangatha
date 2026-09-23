@@ -235,6 +235,8 @@ function handleInput(rawKey) {
       state.lastTapKey = null; state.tapIndex = 0;
       resetStep(); afterRender(); return;
     }
+    // 그 외의 BS는 슬래시 상태를 끊는다(안 끊으면 ။를 지운 뒤 다음 "/"가 엉뚱한 글자를 "..."로 덮어씀).
+    state.slashState = 0;
     if (state.pendingStepE) {
       setText(t.slice(0, -2)); state.pendingStepE = false; state.pendingStep = true;
     } else if (state.pendingStep) {
@@ -282,6 +284,11 @@ function handleInput(rawKey) {
     }
     state.lastTapKey = null; state.tapIndex = 0;
     resetStep(); afterRender(); return;
+  }
+
+  // 콤마/점: 미얀마 글자 뒤나 공란(빈 칸·줄바꿈·빈 입력창) 뒤에서만 결합 부호, 그 외(숫자·기호·영문) 뒤에선 그대로 "," "."
+  if ((k === "," || k === ".") && t !== "" && !/\s$/.test(t) && !endsWithMyanmarLetter()) {
+    setText(t + k); resetState(); afterRender(); return;
   }
 
   // ── 플러스 모드 토글 ──

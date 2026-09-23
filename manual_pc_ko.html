@@ -198,7 +198,23 @@ footer{text-align:center;color:var(--ink-3);font-size:13px;padding:30px 20px 50p
   <!-- 4 -->
   <section id="consonant">
     <h2><span class="n">4</span>자음과 ▶ 키</h2>
-    <p class="lead">미얀마 자음 33개를 왼손 13개 키에 모양이 닮은 것끼리 묶어 두었습니다. 키를 누르면 그 묶음의 <b>첫 글자</b>(검은 글자)가 나오고, <kbd>K</kbd>(▶)를 누를 때마다 <b style="color:var(--sub)">다음 글자</b>(파란 글자)로 바뀝니다.</p>
+    <p class="lead">미얀마 자음 33개를 왼손 13개 키에 <b>자음표의 열</b>을 기준으로 묶어 두었습니다. 키를 누르면 그 묶음의 <b>첫 글자</b>(검은 글자)가 나오고, <kbd>K</kbd>(▶)를 누를 때마다 <b style="color:var(--sub)">다음 글자</b>(파란 글자)로 바뀝니다.</p>
+
+    <h3>묶는 방법</h3>
+    <p>자음표의 각 줄에서 <b>[1열, 2열]</b>을 한 키에, <b>[5열, 3열, 4열]</b>을 다른 한 키에 넣었습니다. 마지막 줄의 나머지 자음들은 [ယ ရ], [သ လ ဝ], [အ ဟ ဠ]로 묶었습니다.</p>
+    <div class="tbl-scroll">
+    <table class="tbl" style="text-align:center">
+      <tr><th></th><th>1열</th><th>2열</th><th>3열</th><th>4열</th><th>5열</th></tr>
+      <tr><th>က 줄</th><td class="big" style="background:#eff6ff">က</td><td class="big" style="background:#eff6ff">ခ</td><td class="big" style="background:#fefce8">ဂ</td><td class="big" style="background:#fefce8">ဃ</td><td class="big" style="background:#fefce8">င</td></tr>
+      <tr><th>စ 줄</th><td class="big" style="background:#eff6ff">စ</td><td class="big" style="background:#eff6ff">ဆ</td><td class="big" style="background:#fefce8">ဇ</td><td class="big" style="background:#fefce8">ဈ</td><td class="big" style="background:#fefce8">ည</td></tr>
+      <tr><th>ဋ 줄</th><td class="big" style="background:#eff6ff">ဋ</td><td class="big" style="background:#eff6ff">ဌ</td><td class="big" style="background:#fefce8">ဍ</td><td class="big" style="background:#fefce8">ဎ</td><td class="big" style="background:#fefce8">ဏ</td></tr>
+      <tr><th>တ 줄</th><td class="big" style="background:#eff6ff">တ</td><td class="big" style="background:#eff6ff">ထ</td><td class="big" style="background:#fefce8">ဒ</td><td class="big" style="background:#fefce8">ဓ</td><td class="big" style="background:#fefce8">န</td></tr>
+      <tr><th>ပ 줄</th><td class="big" style="background:#eff6ff">ပ</td><td class="big" style="background:#eff6ff">ဖ</td><td class="big" style="background:#fefce8">ဗ</td><td class="big" style="background:#fefce8">ဘ</td><td class="big" style="background:#fefce8">မ</td></tr>
+    </table>
+    </div>
+    <p style="font-size:14px;color:var(--ink-2);margin-top:10px">파란 칸(1·2열)은 1열 글자가 먼저, 노란 칸(3·4·5열)은 <b>5열 글자가 먼저</b> 나옵니다. 예: <kbd>F</kbd> = က → ခ, <kbd>S</kbd> = င → ဂ → ဃ</p>
+
+    <h3>키별 배치</h3>
 
     <div class="cgrid">
       <div class="ckey"><kbd>Q</kbd><span class="chars">ည <span class="s">ဇ ဈ</span></span></div>
@@ -410,6 +426,14 @@ footer{text-align:center;color:var(--ink-3);font-size:13px;padding:30px 20px 50p
 
     <h3><kbd>;</kbd> : 성조 부호</h3>
     <p>미얀마 글자 뒤에서는 <span class="g">း</span>(한 번) / <span class="g">့</span>(두 번), 그 외에는 <code>;</code>입니다.</p>
+
+    <h3><kbd>,</kbd> <kbd>.</kbd> : 숫자·기호·영문 뒤에서는 그대로</h3>
+    <p>두 키는 평소에는 결합 부호(<span class="g">ု ူ</span> / <span class="g">ြ ျ</span>)지만, 바로 앞이 <b>숫자·기호·영문</b>이면 그대로 <code>,</code> <code>.</code>이 찍힙니다. 낭아타키를 끄지 않고도 <code>3.5</code>, <code>1,000</code>을 칠 수 있습니다.</p>
+    <table class="tbl">
+      <tr><th>바로 앞 글자</th><th><kbd>,</kbd></th><th><kbd>.</kbd></th></tr>
+      <tr><td>미얀마 글자, 공백, 줄의 처음</td><td class="big">◌ု</td><td class="big">◌ြ</td></tr>
+      <tr><td>숫자, 기호, 영문</td><td><code>,</code></td><td><code>.</code></td></tr>
+    </table>
   </section>
 
   <!-- 9 -->
@@ -466,6 +490,7 @@ footer{text-align:center;color:var(--ink-3);font-size:13px;padding:30px 20px 50p
     <details><summary>스페이스를 눌렀는데 공백이 안 들어가요.</summary><div>키맵이 숨어 있을 때의 첫 스페이스는 키맵을 다시 부르는 데 쓰입니다. 한 번 더 누르면 공백이 입력됩니다.</div></details>
     <details><summary>숫자를 쳤는데 미얀마 숫자가 나와요.</summary><div>키를 0.35초 이상 누르고 있으면 미얀마 숫자가 됩니다. 조금 더 짧게 톡 눌러 주세요.</div></details>
     <details><summary>/ 나 ; 를 그대로 쓰고 싶어요.</summary><div>공백 뒤에서 치면 그대로 입력됩니다. 미얀마 글자 바로 뒤라면 <kbd>/</kbd> 다음 <kbd class="w">BS</kbd>로 <code>/</code>를 얻을 수 있습니다. 영문이 많이 섞인 글이라면 CapsLock으로 잠깐 꺼 두는 것이 편합니다.</div></details>
+    <details><summary>소수점이나 천 단위 쉼표는 어떻게 치나요?</summary><div>숫자 바로 뒤에서 <kbd>.</kbd> <kbd>,</kbd>를 누르면 됩니다. 예: <kbd>3</kbd> <kbd>.</kbd> <kbd>5</kbd> → <code>3.5</code> (8장 참고)</div></details>
     <details><summary>대문자를 연속으로 쓰고 싶어요.</summary><div><kbd class="w">Shift</kbd>+<kbd class="w">CapsLock</kbd>이 원래의 CapsLock 역할을 합니다.</div></details>
   </section>
 
@@ -483,6 +508,7 @@ footer{text-align:center;color:var(--ink-3);font-size:13px;padding:30px 20px 50p
       <tr><td><kbd>O</kbd> +</td><td>다음 자음을 아래에 겹치기 / 특수문자</td></tr>
       <tr><td><kbd>T</kbd> <kbd>Y</kbd> <kbd>G</kbd> <kbd>H</kbd> <kbd>B</kbd> <kbd>N</kbd></td><td class="g">ဉ ၌ ၍ ၎ ဿ ၏</td></tr>
       <tr><td><kbd>/</kbd></td><td><span class="g">၊</span> → <span class="g">။</span> → ... (미얀마 글자 뒤에서만)</td></tr>
+      <tr><td><kbd>,</kbd> <kbd>.</kbd></td><td>숫자·기호·영문 뒤에서는 그대로 <code>,</code> <code>.</code></td></tr>
       <tr><td>숫자</td><td>톡 = 아라비아, 꾹 = 미얀마</td></tr>
       <tr><td><kbd class="w">Space</kbd></td><td>공백 (키맵이 숨었을 땐 첫 번째는 키맵 부르기)</td></tr>
     </table>
