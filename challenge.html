@@ -123,7 +123,8 @@ const K_DIRECT = { t:"ဉ", y:"၌", g:"၍", h:"၎", b:"ဿ", n:"၏" };
 let state = {
   activeGroup: null, groupIndex: 0,
   lastTapKey: null, tapIndex: 0,
-  isPlusMode: false, pendingE: false, pendingStep: false, pendingStepE: false
+  isPlusMode: false, pendingE: false, pendingStep: false, pendingStepE: false,
+  slashState: 0  // 0=평소, 1=쉼표(၊) 직후, 2=마침표(။) 직후, 3=말줄임표(...) 직후 - PC exe와 동일
 };
 
 const editor = document.getElementById('editor');
@@ -144,13 +145,39 @@ function resetStep() { state.activeGroup = null; state.groupIndex = 0; }
 function resetState() {
   resetStep(); state.lastTapKey = null; state.tapIndex = 0;
   state.isPlusMode = false; state.pendingE = false; state.pendingStep = false; state.pendingStepE = false;
+  state.slashState = 0;
+}
+
+// 미얀마 "글자"(자음/모음부호 등)인지 - 슬래시(쉼표/마침표/말줄임표) 조건부 배열에 쓰인다.
+// 미얀마 숫자(1040-1049)·문장부호(104A-104F, 쉼표·마침표 자신 포함)는 "그 외" 취급한다.
+function isMyanmarLetterChar(ch) {
+  if (!ch) return false;
+  const code = ch.codePointAt(0);
+  if (code < 0x1000 || code > 0x109F) return false;
+  if (code >= 0x1040 && code <= 0x104F) return false;
+  return true;
+}
+function endsWithMyanmarLetter() {
+  const t = getText();
+  if (!t) return false;
+  return isMyanmarLetterChar(t.slice(-1));
 }
 
 function handleInput(rawKey) {
   const k = rawKey.toLowerCase();
   let t = getText();
 
+  // "/" 자신과 그 직후의 BS(되돌리기)를 제외한 나머지 모든 키는 슬래시 상태를 무효화한다.
+  if (k !== "/" && k !== "backspace") state.slashState = 0;
+
   if (k === "backspace") {
+    if (state.slashState === 1) {
+      // 슬래시로 찍은 쉼표(၊) 직후의 첫 BS는 삭제가 아니라 "/"로 되돌린다.
+      setText(t.slice(0, -1) + "/");
+      state.slashState = 0;
+      state.lastTapKey = null; state.tapIndex = 0;
+      resetStep(); afterInput(); return;
+    }
     if (state.pendingStepE) {
       setText(t.slice(0, -2)); state.pendingStepE = false; state.pendingStep = true;
     } else if (state.pendingStep) {
@@ -169,6 +196,36 @@ function handleInput(rawKey) {
 
   if (k === "enter")  { setText(t + '\n'); resetState(); afterInput(); return; }
   if (k === " " || k === "spacebar" || k === "space") { setText(t + ' '); resetState(); afterInput(); return; }
+
+  // ── 슬래시: 쉼표(1타)/마침표(2연타)/말줄임표(3연타 이후 계속 점 추가) - 미얀마 글자 바로
+  // 뒤에서만, 그 외엔 "/" (slashState가 3 이상일 땐 그 값 자체가 지금 점 개수) ──
+  if (k === "/") {
+    if (state.slashState >= 3) {
+      // 기존 점들은 그대로 두고 하나만 덧붙인다(exe 쪽 깜빡임 지적과 동일한 이유로 통일).
+      setText(t + ".");
+      state.slashState += 1;
+      afterInput(); return;
+    }
+    if (state.slashState === 2) {
+      setText(t.slice(0, -1) + "...");
+      state.slashState = 3;
+      afterInput(); return;
+    }
+    if (state.slashState === 1) {
+      setText(t.slice(0, -1) + "။");
+      state.slashState = 2;
+      afterInput(); return;
+    }
+    if (endsWithMyanmarLetter()) {
+      setText(t + "၊");
+      state.slashState = 1;
+    } else {
+      setText(t + "/");
+      state.slashState = 0;
+    }
+    state.lastTapKey = null; state.tapIndex = 0;
+    resetStep(); afterInput(); return;
+  }
 
   if (k === K_PLUS) {
     if (state.pendingStepE) { setText(t.slice(0, -2)); state.pendingStepE = false; }
@@ -352,6 +409,7 @@ function codeToKey(code) {
     case 'Semicolon': return ';';
     case 'Comma':     return ',';
     case 'Period':    return '.';
+    case 'Slash':     return '/';
     case 'Backspace': return 'backspace';
     case 'Enter': case 'NumpadEnter': return 'enter';
     case 'Space':     return ' ';

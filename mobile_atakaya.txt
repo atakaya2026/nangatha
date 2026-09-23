@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Atakaya Mobile Demo</title>
+<style>
+  html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #d1d5db; }
+  body { display: flex; flex-direction: column; }
+  #editor { 
+    flex: 1; width: 100%; background: #fff; padding: 20px; font-size: 32px; 
+    border: none; box-sizing: border-box; white-space: pre-wrap; word-wrap: break-word; 
+    overflow-y: auto; outline: none;
+  }
+  #editor::after {
+    content: "|";
+    display: inline-block;
+    color: #000;
+    margin-left: 1px;
+    animation: blink 1s step-end infinite;
+    font-weight: 100;
+  }
+  @keyframes blink {
+    from, to { color: transparent; }
+    50% { color: black; }
+  }
+  .keyboard-container {
+    background: #bcbfc4; padding: 10px 5px calc(10px + env(safe-area-inset-bottom));
+    width: 100%; box-sizing: border-box; border-top: 1px solid #999;
+  }
+  .keyboard { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; max-width: 600px; margin: 0 auto; }
+  .key { 
+    height: 55px; background: #ffffff; border-radius: 6px; display: flex; 
+    justify-content: center; align-items: center; box-shadow: 0 3px 1px #888; 
+    cursor: pointer; user-select: none; font-size: 18px; font-weight: bold; 
+  }
+  .key:active { transform: translateY(2px); box-shadow: none; }
+  .base-key { background: #e3f2fd !important; }
+  .plus-active { background: #a5d6a7 !important; border: 2px solid #66bb6a; }
+  .dark-func { background: #8e8e93 !important; color: #000; }
+  .plus-vowel-key { background: #f3e5f5 !important; } 
+  .special-small { 
+    grid-column: span 1; background: #e8f5e9 !important; height: 50px; 
+    border-radius: 6px; display: flex; justify-content: center; align-items: center; 
+    box-shadow: 0 3px 1px #888; cursor: pointer; font-size: 18px; font-weight: bold; 
+  }
+  .label-container { display: flex; gap: 4px; }
+  .sub-label { font-size: 16px; color: #000; font-weight: bold; } 
+  .bottom-bar { grid-column: span 8; display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-top: 4px; width: 100%; }
+  .btn-123 { grid-column: span 2; background: #8e8e93; height: 50px; border-radius: 6px; display: flex; justify-content: center; align-items: center; box-shadow: 0 3px 1px #888; cursor: pointer; font-weight: bold; }
+  .btn-space { grid-column: span 4; background: #ffffff; height: 50px; border-radius: 6px; display: flex; justify-content: center; align-items: center; box-shadow: 0 3px 1px #888; cursor: pointer; font-weight: bold; font-size: 14px; }
+  .btn-enter { grid-column: span 2; background: #8e8e93; height: 50px; border-radius: 6px; display: flex; justify-content: center; align-items: center; box-shadow: 0 3px 1px #888; cursor: pointer; font-weight: bold; }
+  #action-bar {
+    display: flex; gap: 8px; padding: 8px 10px;
+    background: #e5e7eb; border-bottom: 1px solid #ccc;
+    justify-content: flex-end;
+  }
+  .action-btn {
+    padding: 6px 14px; border-radius: 8px; border: none;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .action-btn.reset { background: #6b7280; color: #fff; }
+  .action-btn.post  { background: #16a34a; color: #fff; }
+  .action-btn.home  { background: #3f6fb8; color: #fff; }
+</style>
+</head>
+<body>
+<div id="action-bar">
+  <button class="action-btn home" onclick="location.href='index.html'">Home</button>
+  <button class="action-btn reset" onclick="resetEditor()">↺ ပြန်ရှင်းရန်</button>
+  <button class="action-btn post" onclick="goToBoard()">💬 သုံးသပ်ချက် တင်ရန်</button>
+</div>
+<div id="editor"></div>
+<div class="keyboard-container">
+  <div class="keyboard" id="kbd"></div>
+</div>
+
+<script>
+const stepMapRow = {
+    "q": ["ဋ", "ဌ", "ဍ", "ဎ", "ဏ"], "a": ["အ", "ဟ", "ဠ"], "s": ["တ", "ထ", "ဒ", "ဓ"],
+    "d": ["က", "ခ", "ဂ", "ဃ"], "f": ["ယ", "ရ", "လ", "ဝ"], "x": ["စ", "ဆ", "ဇ", "ဈ"],
+    "c": ["ပ", "ဖ", "ဗ", "ဘ"]
+};
+const nasalKeys = { "န": "န", "င": "င", "သ": "သ", "မ": "မ", "ည": "ည" };
+const multiTapMap = {
+    "i": ["ိ", "ီ", "ဲ"], "j": ["ေ"], "k": ["်", "ံ"], "l": ["ာ", "ါ"],
+    ";": ["း", "့"], "m": ["ှ", "ွ"], ",": ["ု", "ူ"], ".": ["ြ", "ျ"]
+};
+const plusVowels = { "u": "ဤ", "i": "ဣ", "j": "ဧ", "k": "ဩ", "l": "ဪ", "m": "ဦ", ",": "ဥ" };
+const specialChars = ["ဉ", "၍", "ဿ", "၌", "၎", "၏"];
+const layout3x8 = [
+    ["q", "န", "င", "သ", "u", "i", "o", "p"],
+    ["a", "s", "d", "f", "j", "k", "l", ";"],
+    ["ည", "x", "c", "မ", "m", ",", ".", "BS"]
+];
+
+const ZWNJ = "\u200C";
+const MYANMAR_DIACRITICS = new Set([
+    0x1038, 0x1037, 0x1036,
+    0x102C, 0x102B,
+    0x102D, 0x102E, 0x1032,
+    0x102F, 0x1030,
+    0x103A,
+    0x103C, 0x103B,
+    0x103E, 0x103D,
+]);
+
+const VIRAMA = "\u1039";
+
+// state 설명:
+//   pendingE    : j 1탭 후 자음 대기 중 (화면에 ZWNJ+ေ 있음)
+//   pendingStep : 자음+ေ 결합 완료 후 대기 (화면에 자음+ေ 있음)
+//                 이 상태에서 j를 또 치면 새 pendingE(임시 ZWNJ+ေ 추가)로 진입
+//   pendingStepE: pendingStep 중 j를 한 번 쳐서 임시 ZWNJ+ေ가 추가된 상태
+//                 다음 j가 오면 → ြ 결합 확정
+//                 다른 키가 오면 → 새 글자 시작
+let state = {
+    activeBase: null,
+    currentIndex: 0,
+    uIndex: 0,   // near키 독립 카운터
+    oIndex: 0,   // away키 독립 카운터
+    lastTapKey: null,
+    tapIndex: 0,
+    isPlusMode: false,
+    pendingE: false,
+    pendingStep: false,
+    pendingStepE: false
+};
+
+const editor = document.getElementById('editor');
+
+function getText() { return editor.innerText; }
+function setText(t) { editor.innerText = t; }
+
+function render() {
+    const kbd = document.getElementById('kbd');
+    kbd.innerHTML = '';
+    
+    layout3x8.forEach(row => {
+        row.forEach(key => {
+            const k = key.toLowerCase();
+            const keyDiv = document.createElement('div');
+            keyDiv.className = 'key';
+            
+            if (!state.isPlusMode && (k === 'u' || k === 'o')) {
+                keyDiv.style.backgroundColor = "#fff9c4"; 
+                const group = state.activeBase ? stepMapRow[state.activeBase] : null;
+                const isLongRow = group && group.length >= 5;
+                if (k === 'u') {
+                    // near: 다음 uIndex 글자 표시, q행이면 2개
+                    const nextU = state.uIndex + 1 < (group ? group.length : 0) ? state.uIndex + 1 : 1;
+                    if (group && group[nextU]) {
+                        if (isLongRow && group[nextU + 1]) {
+                            const container = document.createElement('div');
+                            container.className = 'label-container';
+                            [group[nextU], group[nextU + 1]].forEach(c => {
+                                const s = document.createElement('span');
+                                s.className = 'sub-label'; s.innerText = c;
+                                container.appendChild(s);
+                            });
+                            keyDiv.appendChild(container);
+                        } else {
+                            keyDiv.innerText = group[nextU];
+                        }
+                    } else {
+                        keyDiv.innerText = '➞';
+                    }
+                } else {
+                    // away: 다음 oIndex 글자 표시
+                    const jumpTo = isLongRow ? 3 : 2;
+                    const nextO = state.oIndex < jumpTo ? jumpTo : (state.oIndex + 1 < (group ? group.length : 0) ? state.oIndex + 1 : jumpTo);
+                    if (group && group[nextO]) {
+                        // 다음 글자와 그 다음 글자 함께 표시
+                        const container = document.createElement('div');
+                        container.className = 'label-container';
+                        const chars = group[nextO + 1] ? [group[nextO], group[nextO + 1]] : [group[nextO]];
+                        chars.forEach(c => {
+                            const s = document.createElement('span');
+                            s.className = 'sub-label'; s.innerText = c;
+                            container.appendChild(s);
+                        });
+                        keyDiv.appendChild(container);
+                    } else {
+                        keyDiv.innerText = '➞➞';
+                    }
+                }
+            } else if (state.isPlusMode && (k === 'o' || k === ';' || k === '.')) {
+                keyDiv.innerText = "USER"; keyDiv.style.fontSize = "10px";
+            } else if (state.isPlusMode && plusVowels[k]) {
+                keyDiv.innerText = plusVowels[k]; keyDiv.classList.add('plus-vowel-key');
+            } else if (multiTapMap[k]) {
+                const container = document.createElement('div');
+                container.className = 'label-container';
+                multiTapMap[k].forEach(c => {
+                    const s = document.createElement('span');
+                    s.className = 'sub-label'; s.innerText = c;
+                    container.appendChild(s);
+                });
+                keyDiv.appendChild(container);
+            } else {
+                if (key === 'BS') { keyDiv.classList.add('dark-func'); keyDiv.innerText = '⌫'; }
+                else {
+                    if (stepMapRow[k]) keyDiv.classList.add('base-key');
+                    if (k === 'p' && state.isPlusMode) keyDiv.classList.add('plus-active');
+                    let label = (stepMapRow[k] ? stepMapRow[k][0] : (nasalKeys[key] || (k==='p'?'+':key.toUpperCase())));
+                    keyDiv.innerText = label;
+                }
+            }
+            keyDiv.onclick = () => handleInput(key);
+            kbd.appendChild(keyDiv);
+        });
+    });
+
+    const bottomBar = document.createElement('div');
+    bottomBar.className = 'bottom-bar';
+    if (state.isPlusMode) {
+        specialChars.forEach(char => {
+            const div = document.createElement('div');
+            div.className = 'special-small'; div.innerText = char;
+            div.onclick = () => { setText(getText() + char); state.isPlusMode = false; resetStep(); render(); scrollToEnd(); };
+            bottomBar.appendChild(div);
+        });
+        const enter = document.createElement('div');
+        enter.className = 'btn-enter'; enter.innerText = '↵'; enter.style.color = '#000';
+        enter.onclick = () => { setText(getText() + '\n'); state.isPlusMode = false; resetStep(); render(); scrollToEnd(); };
+        bottomBar.appendChild(enter);
+    } else {
+        const btn123 = document.createElement('div');
+        btn123.className = 'btn-123'; btn123.innerText = '၁၂၃'; btn123.style.color = '#000';
+        const space = document.createElement('div');
+        space.className = 'btn-space'; space.innerText = 'ကွက်လပ်';
+        space.onclick = () => { setText(getText() + ' '); resetState(); render(); scrollToEnd(); };
+        const enter = document.createElement('div');
+        enter.className = 'btn-enter'; enter.innerText = '↵'; enter.style.color = '#000';
+        enter.onclick = () => { setText(getText() + '\n'); resetState(); render(); scrollToEnd(); };
+        bottomBar.appendChild(btn123); bottomBar.appendChild(space); bottomBar.appendChild(enter);
+    }
+    kbd.appendChild(bottomBar);
+}
+
+function scrollToEnd() { editor.scrollTop = editor.scrollHeight; }
+
+
+const BEFORE_E_SET = new Set([0x103C,0x103B,0x103E,0x103D,0x103A]);
+function analyzePendingStep(text) {
+    const eIdx = text.lastIndexOf("ေ");
+    if (eIdx === -1) return null;
+    const afterE = text.slice(eIdx + 1);
+    const beforePart = text.slice(0, eIdx);
+    let beEnd = beforePart.length;
+    while (beEnd > 0 && BEFORE_E_SET.has(beforePart.codePointAt(beEnd - 1))) beEnd--;
+    return { consonant: beforePart.slice(0, beEnd), beforeE: beforePart.slice(beEnd), afterE };
+}
+
+function handleInput(key) {
+    const k = key.toLowerCase();
+    let t = getText();
+
+    // ── 백스페이스 ──────────────────────────────────────────
+    if (k === "bs") {
+        if (state.pendingStepE) {
+            setText(t.slice(0, -2));
+            state.pendingStepE = false;
+            state.pendingStep = true;
+        } else if (state.pendingStep) {
+            const ps = analyzePendingStep(t);
+            if (ps && ps.afterE.length > 0) {
+                setText(t.slice(0, -1));
+            } else if (ps && ps.beforeE.length > 0) {
+                setText(ps.consonant + "ေ");
+            } else {
+                const eIdx = t.lastIndexOf("ေ");
+                setText(t.slice(0, eIdx - 1) + "ေ");
+                state.pendingStep = false;
+                state.pendingE = true;
+            }
+        } else if (state.pendingE) {
+            setText(t.endsWith(ZWNJ + "ေ") ? t.slice(0, -2) : t.slice(0, -1));
+            state.pendingE = false;
+        } else {
+            setText(t.slice(0, -1));
+        }
+        state.lastTapKey = null; state.tapIndex = 0;
+        resetStep(); render(); scrollToEnd(); return;
+    }
+
+    // ── p: plus 모드 토글 ────────────────────────────────────
+    if (k === 'p') {
+        // pendingStepE 중이면 임시 ေ 정리
+        if (state.pendingStepE) { setText(t.slice(0, -2)); state.pendingStepE = false; }
+        state.isPlusMode = !state.isPlusMode; render(); return;
+    }
+
+    // ── plus 모드 ────────────────────────────────────────────
+    if (state.isPlusMode) {
+        let charToStack = stepMapRow[k] ? stepMapRow[k][0] : nasalKeys[key];
+        if (charToStack) {
+            if (state.pendingStep) {
+                // 자음+[부호]+ေ 상태: ေ와 그 앞 beforeE 부호까지 빼고 스택 결합
+                // beforeE 부호(ွ/ှ/ြ/ျ)가 붙으면 자음+부호+ေ → 부호+ေ가 2글자
+                let cur = getText();
+                const beforeE = [".", "m", "k"];
+                const stripCount = (state.lastTapKey && beforeE.includes(state.lastTapKey)) ? 2 : 1;
+                setText(cur.slice(0, -stripCount) + VIRAMA + charToStack + "ေ");
+            } else {
+                setText(getText() + VIRAMA + charToStack);
+            }
+            resetStep();
+            if (stepMapRow[k]) { state.activeBase = k; state.currentIndex = 0; }
+        } else if (plusVowels[k]) {
+            setText(getText() + plusVowels[k]);
+            resetStep();
+        }
+        state.isPlusMode = false; render(); scrollToEnd(); return;
+    }
+
+    // ── pendingStepE 상태에서 j 외 다른 키 → 임시 ေ 확정(새 글자 시작) ─
+    if (state.pendingStepE && k !== "j") {
+        // 임시 ZWNJ+ေ를 실제 새 pendingE로 전환하고 현재 키 처리
+        state.pendingStepE = false;
+        state.pendingStep = false;
+        state.pendingE = true;
+        // 텍스트는 이미 ...자음+ေ+ZWNJ+ေ 상태 → 뒤 ZWNJ+ေ가 새 pendingE
+        // 이후 아래 로직에서 pendingE=true 상태로 자음키 등 처리됨
+        t = getText(); // 갱신
+    }
+
+    // ── 자음 키 ──────────────────────────────────────────────
+    if (stepMapRow[k] || nasalKeys[key]) {
+        let char = stepMapRow[k] ? stepMapRow[k][0] : nasalKeys[key];
+
+        if (state.pendingE) {
+            // ေ 선입력 대기 → 자음 결합: (앞내용) + 자음 + ေ
+            let base = t.endsWith(ZWNJ + "ေ") ? t.slice(0, -2) : t.slice(0, -1);
+            setText(base + char + "ေ");
+            state.pendingE = false;
+            state.pendingStep = true;
+            state.lastTapKey = null; state.tapIndex = 0;
+        } else {
+            setText(t + char);
+            state.pendingStep = false;
+            state.pendingE = false;
+            state.lastTapKey = null; state.tapIndex = 0;
+        }
+
+        if (stepMapRow[k]) { state.activeBase = k; state.currentIndex = 0; state.uIndex = 0; state.oIndex = 0; }
+        else resetStep();
+
+    // ── u(near)/o(away): 스텝맵 이동 ────────────────────────
+    } else if ((k === 'u' || k === 'o') && state.activeBase) {
+        const group = stepMapRow[state.activeBase];
+        const isLongRow = group && group.length >= 5;
+        let targetIdx;
+        if (k === 'u') {
+            state.oIndex = 0;  // away 리셋
+            state.uIndex += 1;
+            if (state.uIndex >= group.length) state.uIndex = 1;
+            targetIdx = state.uIndex;
+        } else {
+            state.uIndex = 0;  // near 리셋
+            const jumpTo = isLongRow ? 3 : 2;
+            if (state.oIndex < jumpTo) state.oIndex = jumpTo;
+            else state.oIndex += 1;
+            if (state.oIndex >= group.length) state.oIndex = jumpTo;
+            targetIdx = state.oIndex;
+        }
+        if (group && group[targetIdx]) {
+            let cur = getText();
+            if (state.pendingStep) {
+                setText(cur.slice(0, -2) + group[targetIdx] + "ေ");
+            } else {
+                setText(cur.slice(0, -1) + group[targetIdx]);
+            }
+            state.currentIndex = targetIdx;
+            state.lastTapKey = null; state.tapIndex = 0;
+        }
+
+    // ── 멀티탭 키 ────────────────────────────────────────────
+    } else if (multiTapMap[k]) {
+        // 미얀마 유니코드 음절 순서:
+        //   자음 + ြ/ျ(.) + ှ/ွ(m) + ေ(j) + ာ/ါ(l) + ိ/ီ/ဲ(i) + ု/ူ(,) + ်/ံ(k) + း/့(;)
+        // beforeE_keys: ေ 앞에 재조립 필요한 키 (자음+부호+ေ)
+        // 그 외(l, i, ,, k, ;): ေ 뒤에 추가 (자음+ေ+부호)
+        const beforeE_keys = [".", "m"];
+
+        if (state.lastTapKey === k && state.tapIndex < multiTapMap[k].length - 1) {
+            // 연속 탭 → 다음 값으로 교체 (마지막 글자만 교체)
+            state.tapIndex++;
+            let val = multiTapMap[k][state.tapIndex];
+            if (state.pendingStep) {
+                let cur = getText();
+                if (beforeE_keys.includes(k)) {
+                    // ေ 앞 이전 부호 교체
+                    const eIdx = cur.lastIndexOf("ေ");
+                    const afterE = cur.slice(eIdx + 1);
+                    setText(cur.slice(0, eIdx - 1) + val + "ေ" + afterE);
+                } else {
+                    // ေ 뒤 이전 부호 교체
+                    setText(cur.slice(0, -1) + val);
+                }
+            } else {
+                setText(getText().slice(0, -1) + val);
+            }
+            if (k !== "j") { resetStep(); }
+            // pendingStep은 유지 (ေ 결합 상태 계속)
+        } else {
+            // 첫 탭 또는 다른 키에서 전환
+            state.lastTapKey = k; state.tapIndex = 0;
+            let val = multiTapMap[k][0];
+
+            if (k === "j") {
+                // j → pendingE 진입
+                setText(getText() + ZWNJ + val);
+                state.pendingE = true;
+                state.pendingStep = false;
+                resetStep();
+            } else if (state.pendingStep) {
+                let cur = getText();
+                if (beforeE_keys.includes(k)) {
+                    // ေ 앞에 붙는 부호: ေ 위치 찾아서 앞에 삽입
+                    // ေ 뒤에 이미 부호가 붙어있어도 올바르게 처리
+                    const eIdx = cur.lastIndexOf("ေ");
+                    const afterE = cur.slice(eIdx + 1); // ေ 뒤 부호들
+                    setText(cur.slice(0, eIdx) + val + "ေ" + afterE);
+                } else {
+                    // ေ 뒤에 붙는 부호: 그냥 추가
+                    setText(cur + val);
+                }
+                resetStep();
+            } else if (state.pendingE) {
+                // beforeE 키(메딜)는 ေ 앞에 재배치, 그 외(ာ/ါ, ်/ံ 등)는 ေ 뒤에 그대로 추가
+                let cur = getText();
+                if (beforeE_keys.includes(k)) {
+                    let base = cur.endsWith(ZWNJ + "ေ") ? cur.slice(0, -2) : cur.slice(0, -1);
+                    setText(base + val + "ေ");
+                } else {
+                    setText(cur + val);
+                }
+                state.pendingE = false; state.pendingStep = true;
+            } else {
+                setText(getText() + val);
+                resetStep(); // 모음 결합 시 무브키 항상 리셋
+                state.pendingStep = false;
+            }
+        }
+
+    // ── 기타 키 ─────────────────────────────────────────────
+    } else {
+    if (k === 'u' || k === 'o') return; // activeBase 없으면 무시
+    setText(t + key);
+    resetState();
+}
+
+    scrollToEnd();
+    render();
+}
+
+function resetStep() { state.activeBase = null; state.currentIndex = 0; state.uIndex = 0; state.oIndex = 0; }
+function resetState() {
+    resetStep();
+    state.lastTapKey = null; state.tapIndex = 0;
+    state.isPlusMode = false;
+    state.pendingE = false; state.pendingStep = false; state.pendingStepE = false;
+}
+
+function resetEditor() {
+    setText('');
+    resetState();
+    render();
+}
+
+function goToBoard() {
+    const content = getText().trim();
+    if (!content) {
+        alert('မည်သည့်စာမျှ မရေးရသေးပါ။ အတကယဖြင့် တစ်ခုခု ရေးကြည့်ပါ!');
+        return;
+    }
+    const encoded = encodeURIComponent(content);
+    location.href = `board.html?from=mobile&content=${encoded}`;
+}
+
+render();
+</script>
+</body>
+</html>
