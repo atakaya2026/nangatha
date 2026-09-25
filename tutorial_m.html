@@ -83,7 +83,7 @@
   .btn.ghost   { background: #eef0f2; color: #374151; }
 
   /* ── 키보드 (항상 노출) ── */
-  .keyboard-container { position: relative; width: 100%; flex-shrink: 0; line-height: 0; aspect-ratio: 1758 / 954; }
+  .keyboard-container { position: relative; width: 100%; flex-shrink: 0; line-height: 0; aspect-ratio: 1184 / 646; }
   .keyboard-container > img.kbd-bg { width: 100%; height: 100%; display: block; pointer-events: none; user-select: none; }
   .keyboard { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
   .key {
@@ -153,24 +153,28 @@ const VIRAMA = "္";
 
 const N_COLX = [0.8, 13.2, 25.5, 37.85, 50.25, 62.7, 75.15, 87.5];
 const N_COLW = [11.4, 11.4, 11.4, 11.45, 11.45, 11.4, 11.45, 11.5];
-const N_ROWY = [2.3, 27.15, 51.8];
-const N_ROWH = 21.4;
+const N_ROWY = [2.7, 27.45, 52.0];
+const N_ROWH = 21.0;
 const N_LAYOUT = [
   ["g_nnya", "g_ca",  "g_ta",  "g_pa",  "i",    "k",    "PLUS", "g_tta"],
   ["g_na",   "g_nga", "g_tha", "g_ka",  "j",    "STEP", "l",    ";"    ],
   ["g_nna",  "g_a",   "g_ma",  "g_ya",  "m",    ",",    ".",    "BS"   ]
 ];
+// 4행 6칸: ! ? , 스페이스 ၊(၊→။→… 순환) 엔터 — 안드로이드 앱 KeyMetrics 하단바와 동일한 칸 구성
 const N_BOTTOM = [
-  { key: "NUM",   left: 0.8,   width: 23.83 },
-  { key: "SPACE", left: 25.54, width: 48.63 },
-  { key: "ENTER", left: 75.14, width: 23.89 }
+  { key: "EXCL",  left: 0.93,  width: 8.87  },
+  { key: "QUEST", left: 10.81, width: 9.12  },
+  { key: "COMMA", left: 20.69, width: 11.15 },
+  { key: "SPACE", left: 32.85, width: 34.04 },
+  { key: "STOP",  left: 67.82, width: 11.15 },
+  { key: "ENTER", left: 80.15, width: 18.92 }
 ];
-const N_BOTTOM_Y = 76.5, N_BOTTOM_H = 21.3;
+const N_BOTTOM_Y = 76.8, N_BOTTOM_H = 20.9;
 
 const P_COLX = [0.8, 13.2, 25.54, 37.83, 50.28, 62.74, 75.2, 87.6];
 const P_COLW = [11.49, 11.49, 11.6, 11.66, 11.6, 11.55, 11.49, 11.6];
-const P_ROWY = [2.4, 27.25, 51.78, 76.31];
-const P_ROWH = 21.5;
+const P_ROWY = [2.96, 27.73, 52.3, 76.64];
+const P_ROWH = 21.05;
 const P_LAYOUT = [
   [ {stack:"g_nnya"}, {stack:"g_ca"},  {stack:"g_ta"},  {stack:"g_pa"},  {lit:"ဣ"}, {lit:"ဤ"}, "PLUS",     {stack:"g_tta"} ],
   [ {stack:"g_na"},   {stack:"g_nga"}, {stack:"g_tha"}, {stack:"g_ka"},  {lit:"ဧ"}, "STEP",    {lit:"ဩ"}, {lit:"ဪ"}       ],
@@ -280,7 +284,17 @@ function handleInput(key) {
   }
   if (key === "SPACE") { setText(getText() + ' ');  resetState(); render(); return; }
   if (key === "ENTER") { setText(getText() + '\n'); resetState(); render(); return; }
-  if (key === "NUM")   { return; }
+  // 4행 문장부호: ! ? , 는 그대로 입력. ၊ 키는 연타하면 ၊ → ။ → ... → .... (안드로이드 handleMyanmarStop과 동일)
+  if (key === "EXCL" || key === "QUEST" || key === "COMMA") {
+    setText(getText() + { EXCL: "!", QUEST: "?", COMMA: "," }[key]); resetState(); render(); scrollToEnd(); return;
+  }
+  if (key === "STOP") {
+    const seq = i => i === 0 ? "၊" : i === 1 ? "။" : ".".repeat(i + 1);
+    let cur = getText();
+    if (state.lastTapKey === "STOP") { cur = cur.slice(0, -seq(state.tapIndex).length); state.tapIndex++; }
+    else { resetState(); state.lastTapKey = "STOP"; state.tapIndex = 0; }
+    setText(cur + seq(state.tapIndex)); render(); scrollToEnd(); return;
+  }
 
   if (key === "STEP") {
     if (!state.activeGroup) return;
@@ -386,7 +400,7 @@ const SCENES = [
     btn:"ဟုတ်တယ်၊ ကောင်းတဲ့ အကြံ!" },
 
   { type:"explain", pulse:"PLUS", interactive:["PLUS"],
-    coach:'ဗျည်းဆင့်နဲ့ အထူးအက္ခရာတွေအတွက် <b style="color:#0a7d31">အစိမ်းရောင် ＋</b> ကို နှိပ်ပါ။',
+    coach:'ဗျည်းဆင့်နဲ့ အထူးအက္ခရာတွေအတွက် <b>ပါဠိဆင့်+ ကီး</b>ကို နှိပ်ပါ။',
     btn:"နားလည်ပါပြီ" },
 
   { type:"practice", word:"ဆီ", win:"ရပြီ! ✓&nbsp; ဆီ",
@@ -404,7 +418,7 @@ const SCENES = [
       { kid:"STEP",       expect:"ဒ",     coach:'နောက်စာလုံးကို <b>▶</b> နဲ့ ရွှေ့ပါ။&nbsp; န → ဒ' },
       { kid:",",          expect:"ဒု",    coach:'အောက်တွဲတဲ့ သင်္ကေတက <b>အောက်</b>မှာ ရှိတယ်။' },
       { kid:"g_ka",       expect:"ဒုက",   coach:'<b>က</b> ကို နှိပ်ပါ။' },
-      { kid:"PLUS",       checkPlus:true, coach:'ဗျည်းဆင့်ဖို့ <b style="color:#0a7d31">အစိမ်းရောင် ＋</b> ကီး။' },
+      { kid:"PLUS",       checkPlus:true, coach:'ဗျည်းဆင့်ဖို့ <b>ပါဠိဆင့်+ ကီး</b>ကို နှိပ်ပါ။' },
       { kid:"stack:g_ka", expect:"ဒုက္က", coach:'ခ ပါတဲ့ <b>က</b> ကီးကို နှိပ်ပါ။' },
       { kid:"STEP",       expect:"ဒုက္ခ", coach:'<b>▶</b> နှိပ်ပြီး ခ သို့ ပြောင်းပါ။' }
     ],

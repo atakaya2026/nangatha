@@ -387,7 +387,7 @@ function showPlusPopup() {
   const rect = getCaretRect();
   const vw = window.innerWidth  || document.documentElement.clientWidth  || 1280;
   const vh = window.innerHeight || document.documentElement.clientHeight || 800;
-  const popW = 460, popH = 460 * 356 / 1225;   // pc_plus.png 비율
+  const popW = 460, popH = 460 * 356 / 1282;   // pc_plus.png 비율(2026-09-23 1225→1282)
   let left = rect.left, top = rect.bottom + 8;
   if (left + popW > vw - 8) left = vw - popW - 8;
   if (top  + popH > vh - 8) top  = rect.top - popH - 8;

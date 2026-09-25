@@ -410,7 +410,8 @@ function handleInput(rawKey) {
 // 1225→1282로 늘어났다(사용자가 이미지 직접 교체) - 3행 좌표를 실측해서 갱신. pc_plus.png는
 // 이 기능과 무관해 폭 그대로(1225)라서, 히트박스 폭 기준을 이미지별로 따로 둔다(안 그러면
 // 플러스 모드일 때 오버레이가 실제 키 자리에서 살짝 어긋난다).
-const NORMAL_IMG_W = 1282, PLUS_IMG_W = 1225, IMG_H = 356;
+// 2026-09-23 추가: pc_plus.png도 3행 9·10열 버튼을 붙여 1282로 늘어났다 - 두 이미지 크기·키 좌표가 이제 같다.
+const NORMAL_IMG_W = 1282, PLUS_IMG_W = 1282, IMG_H = 356;
 const ROW_Y = [[3,107],[126,231],[248,353]];
 const ROW_KEYS = [
   ["q","w","e","r","t","y","u","i","o","p"],
@@ -430,7 +431,6 @@ function buildHits(imgW, isPlus) {
   ROW_KEYS.forEach((keys, ri) => {
     const [y0, y1] = ROW_Y[ri];
     keys.forEach((key, ci) => {
-      if (isPlus && key === "/") return; // pc_plus.png엔 이 칸이 없다(폭 그대로, 기능도 무관)
       const [x0, x1] = ROW_COLS[ri][ci];
       const d = document.createElement('div');
       d.className = 'kb-hit';

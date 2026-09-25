@@ -333,7 +333,8 @@ function handleInput(rawKey) {
    실제로 그릴 때(paintRings) 지금 어느 이미지가 떠 있는지에 맞는 폭으로 나눠 %를 계산한다 —
    그냥 KIMG_W 하나만 늘렸더니 두 이미지 폭이 서로 달라서 플러스 모드일 때 전부 어긋났었다. */
 const KIMG_H = 356;
-const NORMAL_KIMG_W = 1282, PLUS_KIMG_W = 1225;
+// 2026-09-23 추가: pc_plus.png도 3행 9·10열 버튼을 붙여 1282로 늘어났다 - 이제 두 이미지 키 좌표가 완전히 같다.
+const NORMAL_KIMG_W = 1282, PLUS_KIMG_W = 1282;
 const KB = (x0,y0,x1,y1) => ({ x0, y0, x1, y1 });
 const KEY_BOXES = {
   q:KB(4,3,105,107),   w:KB(118,3,218,107),  e:KB(231,3,332,107),  r:KB(344,3,445,107),  t:KB(457,3,558,107),
@@ -342,7 +343,7 @@ const KEY_BOXES = {
   h:KB(665,126,766,231), j:KB(778,126,879,231), k:KB(892,126,993,231), l:KB(1006,126,1107,231), ";":KB(1120,126,1221,231),
   z:KB(95,248,196,353), x:KB(209,248,310,353), c:KB(322,248,423,353), v:KB(435,248,536,353), b:KB(549,248,649,353),
   n:KB(723,248,824,353), m:KB(837,248,937,353), ",":KB(951,248,1051,353), ".":KB(1064,248,1164,353),
-  "/":KB(1174,248,1280,353) // pc_map(일반 모드)에만 있는 키 - paintRings에서 플러스 모드면 건너뜀
+  "/":KB(1174,248,1280,353)
 };
 
 // 튜토리얼 스텝의 kid → 물리 키
@@ -364,15 +365,17 @@ function kidToKey(kid) {
 
 const kbdImg = document.getElementById('kbdimg');
 const kbdWrap = document.getElementById('kbd-wrap');
+// 삼행시 씬에서는 키맵 우측(모음 영역)을 암기문으로 덮은 그림을 쓴다 - 같은 1282x356이라 링 좌표 그대로
+const MNEMONIC_IMG = "images/pc_map_mnemonic.png";
+let kbdMnemonic = false;
 function syncKbdImage() {
-  const want = state.isPlusMode ? PLUS_IMG : NORMAL_IMG;
+  const want = state.isPlusMode ? PLUS_IMG : (kbdMnemonic ? MNEMONIC_IMG : NORMAL_IMG);
   if (!kbdImg.getAttribute('src').endsWith(want)) kbdImg.setAttribute('src', want);
 }
 function paintRings(specs) {
   kbdWrap.querySelectorAll('.ring').forEach(n => n.remove());
   const imgW = state.isPlusMode ? PLUS_KIMG_W : NORMAL_KIMG_W;
   (specs || []).forEach(({ key, cls }) => {
-    if (state.isPlusMode && key === "/") return; // pc_plus.png엔 이 키가 없다
     const box = KEY_BOXES[key];
     if (!box) return;
     const d = document.createElement('div');
@@ -397,17 +400,22 @@ const VARGA = [
 ];
 
 const VOWEL_KEYS = ["u","i","j","l",";","m",",","."];
+const MNEMONIC_KEYS = ["q","w","e","r","a","s","d","f","z","x","c","v"];
 
 const SCENES = [
   { type:"explain", diagram:true, rings:[{key:"w",cls:""}],
     coach:'ဗျည်းဇယားရဲ့ တစ်တန်းစီက စာလုံး ၅ လုံးကို <b>ရှေ့ ၂ လုံး (၁·၂)</b> နဲ့ <b>နောက် ၃ လုံး (၅·၃·၄)</b> — အုပ်စု ၂ ခုခွဲ၍ စီစဉ်ထားပါတယ်။<br>' +
           '<b style="color:#1aa3e8">အပြာရောင်စာလုံး</b>က ညာဘက်က <b>➤</b> ကို ထပ်နှိပ်ပြီး ရိုက်ပါ။' },
 
+  // 자음 배열 암기용 삼행시 - 아래 키맵 우측에 암기문 표시(pc_map_mnemonic.png), 빨간 글자 = 그 줄 자음 키
+  { type:"explain", mnemonic:true, rings: MNEMONIC_KEYS.map(k => ({ key:k, cls:"" })),
+    coach:'ဗျည်းခလုတ်တွေကို ဒီလို မှတ်ရင် လွယ်ပါတယ်။<br><b style="color:#e11d1d">အနီရောင်</b> စာလုံးတွေက ခလုတ်တွေပေါ်က ဗျည်းတွေပါ။' },
+
   { type:"explain", rings: VOWEL_KEYS.map(k => ({ key:k, cls:"" })),
     coach:'သရသံနဲ့ အသံသင်္ကေတတွေက ဗျည်းနဲ့ <b>တွဲတဲ့ ဘက်</b>အလိုက် ခလုတ်တွေမှာ စီထားပါတယ်။<br>အပေါ်တွဲတာ <b>အပေါ်</b>မှာ၊ အောက်တွဲတာ <b>အောက်</b>မှာ။' },
 
   { type:"explain", rings:[{key:"o",cls:"pulse"}], peekPlus:true,
-    coach:'ဗျည်းဆင့်နဲ့ အထူးအက္ခရာတွေအတွက် <b style="color:#0a7d31">အစိမ်းရောင် ＋</b> ကို နှိပ်ပါ။<br><span style="color:#6b7280;font-size:.9em">အခု နှိပ်ကြည့်ပြီး ကီးဘုတ်က ဘယ်လိုလဲ ကြည့်ထားပါ။</span>' },
+    coach:'ဗျည်းဆင့်နဲ့ အထူးအက္ခရာတွေအတွက် <b>ပါဠိဆင့်+ ကီး</b>ကို နှိပ်ပါ။<br><span style="color:#6b7280;font-size:.9em">အခု နှိပ်ကြည့်ပြီး ကီးဘုတ်က ဘယ်လိုလဲ ကြည့်ထားပါ။</span>' },
 
   { type:"practice", word:"ဆီ", win:"ရပြီ! ✓&nbsp; ဆီ",
     steps:[
@@ -423,7 +431,7 @@ const SCENES = [
       { kid:"STEP",       expect:"ဒ",     coach:'ဘေးစာလုံးကို <b>➤</b> နဲ့။&nbsp; န → ဒ' },
       { kid:",",          expect:"ဒု",    coach:'အောက်တွဲတဲ့ သင်္ကေတက <b>အောက်</b>။' },
       { kid:"g_ka",       expect:"ဒုက",   coach:'<b>က</b> ကို နှိပ်ပါ။' },
-      { kid:"PLUS",       checkPlus:true, coach:'ဗျည်းဆင့်ဖို့ <b style="color:#0a7d31">အစိမ်းရောင် ＋</b> ကီး။' },
+      { kid:"PLUS",       checkPlus:true, coach:'ဗျည်းဆင့်ဖို့ <b>ပါဠိဆင့်+ ကီး</b>ကို နှိပ်ပါ။' },
       { kid:"stack:g_ka", expect:"ဒုက္က", coach:'<b>ခ</b> ပါတဲ့ <b>က</b> ကီးကို နှိပ်ပါ။' },
       { kid:"STEP",       expect:"ဒုက္ခ", coach:'<b>➤</b> နှိပ်ပြီး ခ သို့ ပြောင်းပါ။' }
     ] }
@@ -462,6 +470,7 @@ const TUT = {
     });
 
     diagramEl.hidden = !sc.diagram;
+    kbdMnemonic = !!sc.mnemonic; syncKbdImage();
     document.getElementById('row').classList.toggle('split', !!sc.diagram);
     goalEl.hidden = !practice;          // 따라쓰기 씬에서만 부제로
     editorEl.hidden = !practice;
